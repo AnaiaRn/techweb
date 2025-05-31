@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product } from './entities/product.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
-  }
+ constructor (
+  @InjectRepository(Product)
+  private readonly productRepo : Repository<Product>,
+ ) {}
 
-  findAll() {
-    return `This action returns all products`;
-  }
+ async findAll (marque?: string, sort?: 'asc' | 'desc') {
+  const query = this.productRepo.createQueryBuilder('product');
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
-  }
+  if (marque) query.andWhere('product.marque = :marque', { marque });
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  if (sort) {
+    query.orderBy('product.prix', sort.toUpperCase() as 'ASC' | 'DESC');
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} product`;
-  }
+  return query.getMany();
+ }
 }
